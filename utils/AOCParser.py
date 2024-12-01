@@ -9,7 +9,7 @@ class AOCParser:
         self.count: int = 0
 
         self.header: list | None = None
-        self._rows: list | None = None
+        self.rows: list | None = None
 
     def parse(self):
         if self.has_header:
@@ -19,4 +19,4 @@ class AOCParser:
             lines_to_parse = self.input.splitlines()
 
         self.count = len(lines_to_parse)
-        self._rows: list = list(map(self.row_parser, lines_to_parse))
+        self.rows: list = list(map(self.row_parser, lines_to_parse))

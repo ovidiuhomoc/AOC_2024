@@ -12,7 +12,7 @@ def row_parser(row: str) -> Any:
     pass
 
 
-def main(aocp: AOCParser):
+def part1(aocp: AOCParser):
     pass
 
 
@@ -21,3 +21,5 @@ if __name__ == '__main__':
                      row_parser=row_parser,
                      has_header=False,
                      header_parser=None)
+
+    print(f"{part1(aocp) = }")
