@@ -1,15 +1,24 @@
+from collections.abc import Callable
+
+
 class AOCParser:
 
-    def __init__(self, input_str: str, row_parser: callable, has_header: bool = False, header_parser: callable or None = None):
-        self.input = input_str
-        self.has_header = has_header
-        self.row_parser = row_parser
-        self.header_parser = header_parser
+    def __init__(self, input_str: str, row_parser: Callable[[str], list | tuple | set | dict], has_header: bool = False, header_parser: Callable[[str], list | tuple | set | dict] or None = None):
+        """Parser for Advent of Code input strings.
+        Args:
+            input_str (str): Input string to parse.
+            row_parser (Callable[[str], list | tuple | set | dict]): Function to parse each row of the input string.
+            has_header (bool, optional): Whether the input string has a header. Defaults to False.
+            header_parser (Callable[[str], list | tuple | set | dict], optional): Function to parse the header of the input string. Defaults to None."""
+        self.input: str = input_str
+        self.has_header: bool = has_header
+        self.row_parser: Callable[[str], list | tuple | set | dict] = row_parser
+        self.header_parser: Callable[[str], list | tuple | set | dict] = header_parser
 
         self.count: int = 0
 
-        self.header: list | None = None
-        self._rows: list | None = None
+        self.header: list | tuple | set | dict | None = None
+        self._rows: list[list | tuple | set | dict] | None = None
 
     def parse(self):
         if self.has_header:
@@ -22,7 +31,7 @@ class AOCParser:
         self._rows: list = list(map(self.row_parser, lines_to_parse))
 
     @property
-    def rows(self, present_as_dict: bool = False) -> list[list] | list[dict]:
+    def rows(self, present_as_dict: bool = False) -> list[list | tuple | set | dict]:
         if present_as_dict:
             assert self.header, "Header must be present to present rows as dict."
 
