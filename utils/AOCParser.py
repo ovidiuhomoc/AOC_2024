@@ -9,7 +9,7 @@ class AOCParser:
         self.count: int = 0
 
         self.header: list | None = None
-        self.rows: list | None = None
+        self._rows: list | None = None
 
     def parse(self):
         if self.has_header:
@@ -19,4 +19,16 @@ class AOCParser:
             lines_to_parse = self.input.splitlines()
 
         self.count = len(lines_to_parse)
-        self.rows: list = list(map(self.row_parser, lines_to_parse))
+        self._rows: list = list(map(self.row_parser, lines_to_parse))
+
+    @property
+    def rows(self, present_as_dict: bool = False) -> list[list] | list[dict]:
+        if present_as_dict:
+            assert self.header, "Header must be present to present rows as dict."
+
+        if not present_as_dict:
+            yield from self._rows
+        else:
+            for row in self._rows:
+                assert len(row) == len(self.header), f"Row length must be equal to header length to present rows as dict. {len(row) = } != {len(self.header) = } | {row = } | {self.header = }"
+                yield dict(zip(self.header, row))
