@@ -4,6 +4,16 @@ from typing import Any
 import day4
 from utils.AOCParser import AOCParser
 
+directions: dict = {'E': (0, 1),
+                    'W': (0, -1),
+                    'S': (1, 0),
+                    'N': (-1, 0),
+                    'SE': (1, 1),
+                    'SW': (1, -1),
+                    'NE': (-1, 1),
+                    'NW': (-1, -1)}
+
+
 
 def header_parser(header: str) -> Any:
     pass
@@ -33,9 +43,6 @@ def construct_word(table: list[list[str]], row_index: int, col_index: int, horiz
     return word
 
 
-def validate_word(word: str) -> bool:
-    return str(word).upper() == 'XMAS'
-
 
 def part1(aocp: AOCParser):
     aocp.parse()
@@ -44,60 +51,15 @@ def part1(aocp: AOCParser):
     for row in aocp.rows:
         table.append(list(row))
 
-    candidate_words: list[tuple[int, int, str]] = []
-
     counter = 0
 
     # construct all possible words in all directions
     for row_index, row in enumerate(table):
         for col_index, ch in enumerate(row):
             if ch == 'X':
-                horizontal_right_candidate = construct_word(table, row_index, col_index, horiz_direction=1, vert_direction=0)
-                if horizontal_right_candidate:
-                    candidate_words.append((row_index, col_index, horizontal_right_candidate))
-                    if validate_word(horizontal_right_candidate):
-                        counter += 1
-
-                horizontal_left_candidate = construct_word(table, row_index, col_index, horiz_direction=-1, vert_direction=0)
-                if horizontal_left_candidate:
-                    candidate_words.append((row_index, col_index, horizontal_left_candidate))
-                    if validate_word(horizontal_left_candidate):
-                        counter += 1
-
-                vertical_down_candidate = construct_word(table, row_index, col_index, horiz_direction=0, vert_direction=1)
-                if vertical_down_candidate:
-                    candidate_words.append((row_index, col_index, vertical_down_candidate))
-                    if validate_word(vertical_down_candidate):
-                        counter += 1
-
-                vertical_up_candidate = construct_word(table, row_index, col_index, horiz_direction=0, vert_direction=-1)
-                if vertical_up_candidate:
-                    candidate_words.append((row_index, col_index, vertical_up_candidate))
-                    if validate_word(vertical_up_candidate):
-                        counter += 1
-
-                diagonal_down_right_candidate = construct_word(table, row_index, col_index, horiz_direction=1, vert_direction=1)
-                if diagonal_down_right_candidate:
-                    candidate_words.append((row_index, col_index, diagonal_down_right_candidate))
-                    if validate_word(diagonal_down_right_candidate):
-                        counter += 1
-
-                diagonal_down_left_candidate = construct_word(table, row_index, col_index, horiz_direction=-1, vert_direction=1)
-                if diagonal_down_left_candidate:
-                    candidate_words.append((row_index, col_index, diagonal_down_left_candidate))
-                    if validate_word(diagonal_down_left_candidate):
-                        counter += 1
-
-                diagonal_up_right_candidate = construct_word(table, row_index, col_index, horiz_direction=1, vert_direction=-1)
-                if diagonal_up_right_candidate:
-                    candidate_words.append((row_index, col_index, diagonal_up_right_candidate))
-                    if validate_word(diagonal_up_right_candidate):
-                        counter += 1
-
-                diagonal_up_left_candidate = construct_word(table, row_index, col_index, horiz_direction=-1, vert_direction=-1)
-                if diagonal_up_left_candidate:
-                    candidate_words.append((row_index, col_index, diagonal_up_left_candidate))
-                    if validate_word(diagonal_up_left_candidate):
+                for direction, (v_increment, h_increment) in directions.items():
+                    candidate = construct_word(table, row_index, col_index, h_increment, v_increment)
+                    if candidate and candidate.upper() == 'XMAS':
                         counter += 1
 
     return counter
@@ -147,5 +109,5 @@ if __name__ == '__main__':
                      has_header=False,
                      header_parser=header_parser)
 
-    # print(f"{part1(aocp) = }")
+    print(f"{part1(aocp) = }")
     print(f"{part2(aocp) = }")
