@@ -1,7 +1,7 @@
 from collections import Counter
 from typing import Any
 
-import day1
+import day01
 from utils.AOCParser import AOCParser
 
 
@@ -55,7 +55,7 @@ if __name__ == '__main__':
     #                  has_header=False,
     #                  header_parser=None)
 
-    aocp = AOCParser(input_str=day1.input1,
+    aocp = AOCParser(input_str=day01.input1,
                      row_parser=row_parser,
                      has_header=False,
                      header_parser=None)

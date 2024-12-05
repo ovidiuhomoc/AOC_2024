@@ -1,7 +1,7 @@
 import copy
 from typing import Any
 
-import day4
+import day04
 from utils.AOCParser import AOCParser
 
 directions: dict = {'E': (0, 1),
@@ -99,12 +99,12 @@ def part2(aocp: AOCParser):
 
 
 if __name__ == '__main__':
-    # aocp = AOCParser(input_str=day4.demoinput,
+    # aocp = AOCParser(input_str=day04.demoinput,
     #                  row_parser=row_parser,
     #                  has_header=False,
     #                  header_parser=header_parser)
 
-    aocp = AOCParser(input_str=day4.input1,
+    aocp = AOCParser(input_str=day04.input1,
                      row_parser=row_parser,
                      has_header=False,
                      header_parser=header_parser)

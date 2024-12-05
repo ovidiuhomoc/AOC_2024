@@ -1,7 +1,7 @@
 import copy
 from typing import Any
 
-import day2
+import day02
 from utils.AOCParser import AOCParser
 
 
@@ -65,12 +65,12 @@ def part2(aocp: AOCParser):
 
 
 if __name__ == '__main__':
-    # aocp = AOCParser(input_str=day2.demoinput,
+    # aocp = AOCParser(input_str=day02.demoinput,
     #                  row_parser=row_parser,
     #                  has_header=False,
     #                  header_parser=header_parser)
 
-    aocp = AOCParser(input_str=day2.input1,
+    aocp = AOCParser(input_str=day02.input1,
                      row_parser=row_parser,
                      has_header=False,
                      header_parser=header_parser)

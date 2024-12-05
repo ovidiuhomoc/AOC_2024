@@ -1,6 +1,6 @@
 import re
 
-import day3
+import day03
 
 mul_pattern = re.compile(r'mul\((\d{1,3}),(\d{1,3})\)')
 
@@ -80,13 +80,13 @@ def part2(string: str):
 
 
 if __name__ == '__main__':
-    print(f"{part1(day3.demoinput) = }")
+    print(f"{part1(day03.demoinput) = }")
     print()
 
-    print(f"{part2(day3.demoinput2) = }")
+    print(f"{part2(day03.demoinput2) = }")
     print()
-    print(f"{part2(day3.input1) = }")
+    print(f"{part2(day03.input1) = }")
     print()
 
-    print(f"{part2_optimized(day3.demoinput2) = }")
-    print(f"{part2_optimized(day3.input1) = }")
+    print(f"{part2_optimized(day03.demoinput2) = }")
+    print(f"{part2_optimized(day03.input1) = }")
