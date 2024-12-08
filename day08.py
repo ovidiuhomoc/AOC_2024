@@ -7,60 +7,49 @@ def is_antinode_valid(antinode: tuple[int, int], max_row: int, max_col: int) -> 
 
 
 def compute_antinodes(coord_antenna_1: tuple[int, int], coord_antenna_2: tuple[int, int], row_limit: int, col_limit: int, compute_harmonics: int) -> list[tuple[int, int]]:
-    above_antinodes = []
+    results = []
 
     first_antenna, second_antenna = (coord_antenna_1, coord_antenna_2) if coord_antenna_1[0] < coord_antenna_2[0] else (coord_antenna_2, coord_antenna_1)
 
     row1, col1 = first_antenna
     row2, col2 = second_antenna
 
-    next_up_antinode_row = row1 - (row2 - row1)
-    next_up_antinode_col = col1 - (col2 - col1)
-    above_antinodes.append((row1, col1))
+    row_diff = row2 - row1
+    col_diff = col2 - col1
+
+    next_up_antinode_row = row1 - row_diff
+    next_up_antinode_col = col1 - col_diff
 
     if is_antinode_valid((next_up_antinode_row, next_up_antinode_col), row_limit, col_limit):
-        above_antinodes.append((next_up_antinode_row, next_up_antinode_col))
+        results.append((next_up_antinode_row, next_up_antinode_col))
 
         while True and compute_harmonics:
-            above_node_row = above_antinodes[-1][0]
-            above_node_col = above_antinodes[-1][1]
-
-            below_node_row = above_antinodes[-2][0]
-            below_node_col = above_antinodes[-2][1]
-
-            next_up_antinode_row = above_node_row - (below_node_row - above_node_row)
-            next_up_antinode_col = above_node_col - (below_node_col - above_node_col)
+            next_up_antinode_row = next_up_antinode_row - row_diff
+            next_up_antinode_col = next_up_antinode_col - col_diff
 
             if is_antinode_valid((next_up_antinode_row, next_up_antinode_col), row_limit, col_limit):
-                above_antinodes.append((next_up_antinode_row, next_up_antinode_col))
+                results.append((next_up_antinode_row, next_up_antinode_col))
             else:
                 break
 
-    below_antinodes = []
-
-    next_down_antinode_row = row2 + (row2 - row1)
-    next_down_antinode_col = col2 + (col2 - col1)
-    below_antinodes.append((row2, col2))
+    row_diff = row2 - row1
+    col_diff = col2 - col1
+    next_down_antinode_row = row2 + row_diff
+    next_down_antinode_col = col2 + col_diff
 
     if is_antinode_valid((next_down_antinode_row, next_down_antinode_col), row_limit, col_limit):
-        below_antinodes.append((next_down_antinode_row, next_down_antinode_col))
+        results.append((next_down_antinode_row, next_down_antinode_col))
 
         while True and compute_harmonics:
-            above_node_row = below_antinodes[-2][0]
-            above_node_col = below_antinodes[-2][1]
-
-            below_node_row = below_antinodes[-1][0]
-            below_node_col = below_antinodes[-1][1]
-
-            next_down_antinode_row = below_node_row + (below_node_row - above_node_row)
-            next_down_antinode_col = below_node_col + (below_node_col - above_node_col)
+            next_down_antinode_row = next_down_antinode_row + row_diff
+            next_down_antinode_col = next_down_antinode_col + col_diff
 
             if is_antinode_valid((next_down_antinode_row, next_down_antinode_col), row_limit, col_limit):
-                below_antinodes.append((next_down_antinode_row, next_down_antinode_col))
+                results.append((next_down_antinode_row, next_down_antinode_col))
             else:
                 break
 
-    return above_antinodes[1:] + below_antinodes[1:]
+    return results
 
 
 def main(input: str, part=1):
