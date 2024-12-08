@@ -9,10 +9,7 @@ def is_antinode_valid(antinode: tuple[int, int], max_row: int, max_col: int) -> 
 def compute_antinodes(coord_antenna_1: tuple[int, int], coord_antenna_2: tuple[int, int], row_limit: int, col_limit: int, compute_harmonics: int) -> list[tuple[int, int]]:
     results = []
 
-    first_antenna, second_antenna = (coord_antenna_1, coord_antenna_2) if coord_antenna_1[0] < coord_antenna_2[0] else (coord_antenna_2, coord_antenna_1)
-
-    row1, col1 = first_antenna
-    row2, col2 = second_antenna
+    (row1, col1), (row2, col2) = (coord_antenna_1, coord_antenna_2) if coord_antenna_1[0] < coord_antenna_2[0] else (coord_antenna_2, coord_antenna_1)
 
     row_diff = row2 - row1
     col_diff = col2 - col1
