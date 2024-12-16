@@ -1,3 +1,5 @@
+import queue
+
 import day12
 
 
@@ -22,24 +24,24 @@ def is_flower_in_any_region(regions: list[tuple[str, list[tuple[int, int, int]]]
 
 
 def discover_flower_region(grid: list[list[str]], regions: list[tuple[str, list[tuple[int, int, int]]]], flower: str, row: int, col: int) -> tuple[str, list[tuple[int, int, int]]]:
-    to_explore = set()
-    to_explore.add((row, col, 0))
+    to_explore = queue.SimpleQueue()
+    to_explore.put((row, col, 0, 0))
     region = []
 
-    def in_region(neighbour_row: int, neighbour_col: int, perim: int) -> bool:
+    def in_region(neighbour_row: int, neighbour_col: int, flower_type: str) -> bool:
         for r, c, _ in region:
             if neighbour_row == r and neighbour_col == c:
                 return True
 
-    while to_explore:
-        current = to_explore.pop()
+    while not to_explore.empty():
+        current = to_explore.get()
         if not current:
             continue
 
         neighbours = get_neighbours(grid=grid, row=current[0], col=current[1])
         for neighbour in neighbours:
             if neighbour[2] == flower and not in_region(*neighbour) and not is_flower_in_any_region(regions, neighbour[0], neighbour[1]):
-                to_explore.add(neighbour)
+                to_explore.put(neighbour)
 
         contributing_perim = 4 - len(neighbours)
         contributing_perim = contributing_perim + sum(1 for neighbour in neighbours if neighbour[2] != flower)
@@ -48,41 +50,55 @@ def discover_flower_region(grid: list[list[str]], regions: list[tuple[str, list[
     return flower, region
 
 
-def get_vertices_count(points: list[tuple[int, int]]) -> int:
-    sorted_points = sorted(points)
+def get_corners_count(region_coords: set[tuple[int, int]]) -> int:
+    if not region_coords:
+        return 0
 
-    lower = []
-    for point in sorted_points:
-        while len(lower) >= 2:
-            a = lower[-2]
-            b = lower[-1]
+    if len(region_coords) == 1:
+        return 4
 
-            ab = (b[0] - a[0], b[1] - a[1])
-            ac = (point[0] - a[0], point[1] - a[1])
-            cross_product = ab[0] * ac[1] - ab[1] * ac[0]
+    # turn each pixel in a square of 2x2 pixels
+    pixels: list[tuple[int, int]] = []
+    for row, col in region_coords:
+        pixels.extend([(2 * row, 2 * col), (2 * row, 2 * col + 1), (2 * row + 1, 2 * col), (2 * row + 1, 2 * col + 1)])
 
-            if cross_product > 0:
-                break
-            lower[:] = lower[:-1]
-        lower.append(point)
+    def n_flower(coord: tuple[int, int]) -> tuple[int, int]:
+        return coord[0] - 1, coord[1]
 
-    upper = []
-    for point in sorted_points[::-1]:
-        while len(upper) >= 2:
-            a = upper[-2]
-            b = upper[-1]
+    def nw_flower(coord: tuple[int, int]) -> tuple[int, int]:
+        return coord[0] - 1, coord[1] - 1
 
-            ab = (b[0] - a[0], b[1] - a[1])
-            ac = (point[0] - a[0], point[1] - a[1])
-            cross_product = ab[0] * ac[1] - ab[1] * ac[0]
+    def ne_flower(coord: tuple[int, int]) -> tuple[int, int]:
+        return coord[0] - 1, coord[1] + 1
 
-            if cross_product > 0:
-                break
-            upper[:] = upper[:-1]
-        upper.append(point)
+    def s_flower(coord: tuple[int, int]) -> tuple[int, int]:
+        return coord[0] + 1, coord[1]
 
-    hull = lower[:-1] + upper[:-1]
+    def sw_flower(coord: tuple[int, int]) -> tuple[int, int]:
+        return coord[0] + 1, coord[1] - 1
 
+    def se_flower(coord: tuple[int, int]) -> tuple[int, int]:
+        return coord[0] + 1, coord[1] + 1
+
+    def w_flower(coord: tuple[int, int]) -> tuple[int, int]:
+        return coord[0], coord[1] - 1
+
+    def e_flower(coord: tuple[int, int]) -> tuple[int, int]:
+        return coord[0], coord[1] + 1
+
+    corners = 0
+    for pixel in pixels:
+        corners += sum([w_flower(pixel) in pixels and n_flower(pixel) in pixels and nw_flower(pixel) not in pixels,
+                        n_flower(pixel) in pixels and e_flower(pixel) in pixels and ne_flower(pixel) not in pixels,
+                        e_flower(pixel) in pixels and s_flower(pixel) in pixels and se_flower(pixel) not in pixels,
+                        s_flower(pixel) in pixels and w_flower(pixel) in pixels and sw_flower(pixel) not in pixels])
+
+        corners += sum([n_flower(pixel) not in pixels and e_flower(pixel) not in pixels,
+                        n_flower(pixel) not in pixels and w_flower(pixel) not in pixels,
+                        s_flower(pixel) not in pixels and e_flower(pixel) not in pixels,
+                        s_flower(pixel) not in pixels and w_flower(pixel) not in pixels])
+
+    return corners
 
 
 def main(input: str, part: int = 1):
@@ -100,8 +116,12 @@ def main(input: str, part: int = 1):
     for region in regions:
         area = len(region[1])
         perim_p1 = sum(perim for _, _, perim in region[1])
-        vertices_count = get_vertices_count([(r, c) for r, c, perim in region[1]])
-        total_sum += area * perim_p1
+        region_corners: int = get_corners_count({(row, col) for row, col, perim in region[1]})
+        if part == 1:
+            total_sum += area * perim_p1
+        else:
+            area2 = len({(row, col) for row, col, perim in region[1]})
+            total_sum += area2 * region_corners
 
     return total_sum
 
@@ -116,5 +136,5 @@ if __name__ == '__main__':
     # print(f"{main(dinput2, part=1) = }")
     # print(f"{main(dinput3, part=1) = }")
     # print(f"{main(input1, part=1) = }")
-    print(f"{main(dinput, part=2) = }")
-    # print(f"{main(input1, part=2) = }")
+    # print(f"{main(dinput, part=2) = }")
+    print(f"{main(input1, part=2) = }")
