@@ -102,14 +102,14 @@ class Grid:
         # Large cost for initialization
         INF = float('inf')
 
-        # Distance array: dist[x][y][orientation]
+        # Distance array: dist[x][y][orientation_index]
         dist = [[[INF for _ in range(4)] for _ in range(W)] for _ in range(H)]
 
         # Parents array: For each (x,y,o), store a list of (px,py,po) states
         # that lead to (x,y,o) with the optimal known cost.
         parents = [[[[] for _ in range(4)] for _ in range(W)] for _ in range(H)]
 
-        # Priority queue: entries are tuples (cost, x, y, orientation)
+        # Priority queue: entries are tuples (cost, x, y, orientation_index)
         pq = []
 
         # Initialize distance for the start state
@@ -122,21 +122,21 @@ class Grid:
 
         # Dijkstra's algorithm
         while pq:
-            current_cost, x, y, orientation = heapq.heappop(pq)
+            current_cost, x, y, orientation_index = heapq.heappop(pq)
 
             # If this is not the latest known best cost, skip
-            if dist[y][x][orientation] < current_cost:
+            if dist[y][x][orientation_index] < current_cost:
                 continue
 
-            # Check if goal reached (orientation doesn't matter at goal)
+            # Check if goal reached (orientation_index doesn't matter at goal)
             gx, gy = int(goal.real), int(goal.imag)
             if (x, y) == (gx, gy):
                 # We don't stop here because we want to ensure we have all equal-cost paths.
                 # However, in a standard Dijkstra, we could stop now.
-                pass
+                continue
 
             # 1. Try moving forward
-            orientation_complex = directions[orientation]
+            orientation_complex = directions[orientation_index]
             orientation_complex_index = directions.index(orientation_complex)
             nx, ny = x + int(orientation_complex.real), y + int(orientation_complex.imag)
 
@@ -144,13 +144,13 @@ class Grid:
                 new_cost = current_cost + 1
                 if new_cost < dist[ny][nx][orientation_complex_index]:
                     dist[ny][nx][orientation_complex_index] = new_cost
-                    parents[ny][nx][orientation_complex_index] = [(x, y, orientation)]  # Clear and set new parent
+                    parents[ny][nx][orientation_complex_index] = [(x, y, orientation_index)]  # Clear and set new parent
                     heapq.heappush(pq, (new_cost, nx, ny, orientation_complex_index))
                 elif new_cost == dist[ny][nx][orientation_complex_index]:
-                    parents[ny][nx][orientation_complex_index].append((x, y, orientation))
+                    parents[ny][nx][orientation_complex_index].append((x, y, orientation_index))
 
             # 2. Turn left
-            left_orientation_complex = directions[orientation] * -1j
+            left_orientation_complex = directions[orientation_index] * -1j
             left_orientation_complex_index = directions.index(left_orientation_complex)
             nx, ny = x + int(left_orientation_complex.real), y + int(left_orientation_complex.imag)
 
@@ -158,13 +158,13 @@ class Grid:
                 new_cost = current_cost + 1000 + 1
                 if new_cost < dist[y][x][left_orientation_complex_index]:
                     dist[ny][nx][left_orientation_complex_index] = new_cost
-                    parents[ny][nx][left_orientation_complex_index] = [(x, y, orientation)]  # Clear and set new parent
+                    parents[ny][nx][left_orientation_complex_index] = [(x, y, orientation_index)]  # Clear and set new parent
                     heapq.heappush(pq, (new_cost, nx, ny, left_orientation_complex_index))
                 elif new_cost == dist[ny][nx][left_orientation_complex_index]:
-                    parents[ny][nx][left_orientation_complex_index].append((x, y, orientation))
+                    parents[ny][nx][left_orientation_complex_index].append((x, y, orientation_index))
 
             # 3. Turn right
-            right_orientation_complex = directions[orientation] * +1j
+            right_orientation_complex = directions[orientation_index] * +1j
             right_orientation_complex_index = directions.index(right_orientation_complex)
             nx, ny = x + int(right_orientation_complex.real), y + int(right_orientation_complex.imag)
 
@@ -172,48 +172,65 @@ class Grid:
                 new_cost = current_cost + 1000 + 1
                 if new_cost < dist[y][x][right_orientation_complex_index]:
                     dist[ny][nx][right_orientation_complex_index] = new_cost
-                    parents[ny][nx][right_orientation_complex_index] = [(x, y, orientation)]  # Clear and set new parent
+                    parents[ny][nx][right_orientation_complex_index] = [(x, y, orientation_index)]  # Clear and set new parent
                     heapq.heappush(pq, (new_cost, nx, ny, right_orientation_complex_index))
                 elif new_cost == dist[ny][nx][right_orientation_complex_index]:
-                    parents[ny][nx][right_orientation_complex_index].append((x, y, orientation))
+                    parents[ny][nx][right_orientation_complex_index].append((x, y, orientation_index))
 
-        # After Dijkstra finishes, find the minimal cost to reach the goal cell in any orientation
+        # After Dijkstra finishes, find the minimal cost to reach the goal cell in any orientation_index
         min_cost = min(dist[gy][gx])
 
         return dist, parents, min_cost
 
+    def reconstruct_all_paths(self, parents, dist):
+        """
+        Given the parents structure and dist, reconstruct all shortest paths from the start to the goal.
+        goal: (gx, gy)
+        Returns a list of paths, where each path is a list of (x,y,o) states in order.
+        """
 
-def reconstruct_all_paths(parents, dist, goal):
-    """
-    Given the parents structure and dist, reconstruct all shortest paths from the start to the goal.
-    goal: (gx, gy)
-    Returns a list of paths, where each path is a list of (x,y,o) states in order.
-    """
+        gx, gy = (int(self.grid_end.real), int(self.grid_end.imag))
+        sx, sy = (int(self.grid_agent_start.real), int(self.grid_agent_start.imag))
 
-    gx, gy = goal
-    # Find all orientations that achieve min_cost at goal
-    min_cost = min(dist[gy][gx])
-    best_orientations = [o for o in range(4) if dist[gy][gx][o] == min_cost]
+        # Find all orientations that achieve min_cost at goal
+        min_cost = min(dist[gy][gx])
+        best_orientations = [o_index for o_index, o_cost in enumerate(dist[gy][gx]) if o_cost == min_cost]
 
-    # We'll do a backtracking from goal states to start states
-    all_paths = []
+        # We'll do a backtracking from goal states to start states
+        all_coords = set()
+        all_coords.add((gx, gy))
 
-    def backtrack(x, y, o, current_path):
-        # Prepend current node
-        current_path.append((x, y, o))
-        if len(parents[y][x][o]) == 0:
-            # This means we are at the start state(s)
-            # Reverse current path to get start->goal order
-            all_paths.append(current_path[::-1])
-            return
-        # Explore all parents
-        for (px, py, po) in parents[y][x][o]:
-            backtrack(px, py, po, current_path[:])  # Pass a copy so each branch is independent
+        visited_coords = set()
 
-    for o in best_orientations:
-        backtrack(gx, gy, o, [])
+        stack = []
 
-    return all_paths
+        for o_index in best_orientations:
+            for parent in parents[gy][gx][o_index]:
+                px, py, contributing_orientation = parent
+                stack.append((px, py, contributing_orientation))
+                all_coords.add((px, py))
+
+                visited_coords.add((gx, gy, o_index))
+
+        while stack:
+            x, y, contributing_orientation = stack.pop()
+            if (x, y, contributing_orientation) in visited_coords:
+                continue
+            visited_coords.add((x, y, contributing_orientation))
+
+            if sx == x and sy == y:
+                # This means we are at the start state(s)
+                # Reverse current path to get start->goal order
+                continue
+            else:
+                for parent in parents[y][x][contributing_orientation]:
+                    parent_x, parent_y, parent_contributing_orientation = parent
+                    stack.append((parent_x, parent_y, parent_contributing_orientation))
+                    all_coords.add((parent_x, parent_y))
+
+                    print(f"({parent_x: >2}, {parent_y: >2}) -> ({x: >2}, {y: >2})")
+
+        return all_coords
 
 
 def main(input, part=1, verbosity=False):
@@ -224,9 +241,20 @@ def main(input, part=1, verbosity=False):
         return None
     else:
         print("Minimal cost:", min_cost)
-        all_paths = reconstruct_all_paths(parents, dist, (int(grid.grid_end.real), int(grid.grid_end.imag)))
-        all_coords: set[tuple[int, int]] = {(x, y) for path in all_paths for x, y, _ in path}
+        all_coords: set[tuple[int, int]] = grid.reconstruct_all_paths(parents, dist)
         print("Number of unique states in all paths:", len(all_coords))
+
+        print(str(grid))
+        print()
+        print()
+        grid_as_table: list[list[Entity]] = grid.as_table
+        grid_as_str_table = [[obj.as_char for obj in row] for row in grid_as_table]
+        for coords in all_coords:
+            x, y = coords
+            grid_as_str_table[y][x] = "O"
+
+        for row in grid_as_str_table:
+            print("".join(row))
 
     return min_cost
 
