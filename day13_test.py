@@ -28,14 +28,14 @@ def test1(count: int):
                                test_injected_a_count=a_count,
                                test_injected_b_count=b_count)
 
-        result = machine.get_a_b_press_count()
+        result = machine.get_min_cost()
         if result is None:
             print(f"Test failed for {machine} with a_count={a_count}, b_count={b_count}. \n{machine = }")
             raise Exception("No solution")
         if not isinstance(result, tuple):
             print(f"Test failed for {machine} with a_count={a_count}, b_count={b_count}. \n{machine = }")
             raise Exception("Invalid return type")
-        a_computed_count, b_computed_count = machine.get_a_b_press_count()
+        a_computed_count, b_computed_count = machine.get_min_cost()
         assert a_computed_count == a_count and b_computed_count == b_count, f"Test failed for {machine} with a_count={a_count}, b_count={b_count}, a_computed_count={a_computed_count}, b_computed_count={b_computed_count}. \n{machine = }"
         print(f"Test {i} passed")
 

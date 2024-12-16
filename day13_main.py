@@ -19,7 +19,7 @@ def day13_main(input: str | list[MachineSetup], part=1):
             b_x, b_y = move[0], move[1]
 
             prize = list(map(int, [coord.split('=')[1] for coord in machine_lines[2].split('Prize:')[1].strip().split(', ')]))
-            prize_x, prize_y = prize[0], prize[1]
+            prize_x, prize_y = (prize[0], prize[1]) if part == 1 else (prize[0] + 10000000000000, prize[1] + 10000000000000)
 
             machines.append(MachineSetup(P_x=prize_x,
                                          P_y=prize_y,
@@ -32,21 +32,7 @@ def day13_main(input: str | list[MachineSetup], part=1):
     else:
         raise ValueError("Invalid input type")
 
-    computed_total_cost = 0
-    for machine in machines:
-        # print(f"{str(machine):50}", end='')
-        result = machine.get_a_b_press_count()
-        if result is not None:
-            a_count, b_count = result
-            try:
-                computed_total_cost += a_count * a_cost + b_count * b_cost
-            except TypeError:
-                raise Exception(f"Invalid return type for {machine}")
-            # print(f" -> {a_count = }, {b_count = }")
-        else:
-            # print(" -> No solution")
-            pass
-
+    computed_total_cost = sum(machine.get_min_cost() for machine in machines)
     return computed_total_cost
 
 
@@ -55,6 +41,5 @@ if __name__ == '__main__':
     input1 = day13.input1
 
     # print(f"{main(dinput, part=1) = }")
-    print(f"{day13_main(input1, part=1) = }")
-
-    # print(f"{main(input1, part=2) = }")
+    # print(f"{day13_main(input1, part=1) = }")
+    print(f"{day13_main(input1, part=2) = }")

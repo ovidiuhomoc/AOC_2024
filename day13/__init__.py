@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from math import gcd
 
 demoinput: str = """Button A: X+94, Y+34
 Button B: X+22, Y+67
@@ -17,7 +16,131 @@ Button A: X+69, Y+23
 Button B: X+27, Y+71
 Prize: X=18641, Y=10279"""
 
-input1: str = """Button A: X+82, Y+46
+input1: str = """Button A: X+30, Y+53
+Button B: X+83, Y+23
+Prize: X=3457, Y=2522
+
+Button A: X+48, Y+93
+Button B: X+82, Y+30
+Prize: X=8442, Y=10557
+
+Button A: X+44, Y+24
+Button B: X+13, Y+50
+Prize: X=2341, Y=12226
+
+Button A: X+99, Y+55
+Button B: X+22, Y+80
+Prize: X=7095, Y=6585
+
+Button A: X+49, Y+13
+Button B: X+28, Y+57
+Prize: X=4561, Y=11243
+
+Button A: X+34, Y+12
+Button B: X+19, Y+26
+Prize: X=435, Y=250
+
+Button A: X+47, Y+96
+Button B: X+19, Y+11
+Prize: X=5171, Y=7809
+
+Button A: X+41, Y+26
+Button B: X+25, Y+51
+Prize: X=15318, Y=12120
+
+Button A: X+75, Y+19
+Button B: X+39, Y+42
+Prize: X=5121, Y=1747
+
+Button A: X+24, Y+43
+Button B: X+64, Y+25
+Prize: X=7736, Y=5073
+
+Button A: X+54, Y+99
+Button B: X+95, Y+17
+Prize: X=13421, Y=11246
+
+Button A: X+12, Y+47
+Button B: X+67, Y+31
+Prize: X=4477, Y=10631
+
+Button A: X+20, Y+42
+Button B: X+45, Y+25
+Prize: X=15160, Y=17864
+
+Button A: X+19, Y+30
+Button B: X+38, Y+15
+Prize: X=14332, Y=12875
+
+Button A: X+45, Y+81
+Button B: X+46, Y+12
+Prize: X=2219, Y=8135
+
+Button A: X+23, Y+58
+Button B: X+63, Y+13
+Prize: X=8206, Y=16696
+
+Button A: X+63, Y+50
+Button B: X+16, Y+48
+Prize: X=4381, Y=6054
+
+Button A: X+14, Y+73
+Button B: X+81, Y+20
+Prize: X=7349, Y=2510
+
+Button A: X+73, Y+75
+Button B: X+15, Y+87
+Prize: X=3006, Y=8028
+
+Button A: X+68, Y+17
+Button B: X+28, Y+77
+Prize: X=5728, Y=3612
+
+Button A: X+17, Y+92
+Button B: X+28, Y+12
+Prize: X=1649, Y=1808
+
+Button A: X+15, Y+34
+Button B: X+77, Y+56
+Prize: X=2052, Y=16352
+
+Button A: X+43, Y+13
+Button B: X+26, Y+31
+Prize: X=3798, Y=1773
+
+Button A: X+46, Y+11
+Button B: X+16, Y+30
+Prize: X=4354, Y=9401
+
+Button A: X+42, Y+97
+Button B: X+73, Y+19
+Prize: X=3856, Y=6512
+
+Button A: X+69, Y+20
+Button B: X+15, Y+53
+Prize: X=11702, Y=7284
+
+Button A: X+53, Y+12
+Button B: X+27, Y+54
+Prize: X=15330, Y=16034
+
+Button A: X+50, Y+14
+Button B: X+18, Y+36
+Prize: X=16616, Y=3170
+
+Button A: X+58, Y+17
+Button B: X+31, Y+46
+Prize: X=3992, Y=4197
+
+Button A: X+86, Y+19
+Button B: X+27, Y+29
+Prize: X=4626, Y=1667
+
+Button A: X+21, Y+56
+Button B: X+63, Y+35
+Prize: X=1428, Y=1946
+
+Button A: X+82, Y+46
 Button B: X+39, Y+96
 Prize: X=5749, Y=7450
 
@@ -1239,362 +1362,17 @@ class MachineSetup:
 
         return best_solution
 
-    def find_optimal_counts(self):
-        objective_coeff_a: int = 3
-        objective_coeff_b: int = 1
+    def get_min_cost(self) -> int:
+        b_count_fraction_upper = (self.P_y * self.a_x) - (self.P_x * self.a_y)
+        b_count_fraction_lower = (self.b_y * self.a_x) - (self.b_x * self.a_y)
 
-        a_x = self.a_x
-        a_y = self.a_y
-        b_x = self.b_x
-        b_y = self.b_y
-        P_x = self.P_x
-        P_y = self.P_y
+        b, brem = divmod(b_count_fraction_upper, b_count_fraction_lower)
+        a_count_fraction_upper = self.P_x - (self.b_x * b)
+        a_count_fraction_lower = self.a_x
 
-        # Step 1: Verify Linear Dependence
-        D = a_x * b_y - a_y * b_x
+        a, arem = divmod(a_count_fraction_upper, a_count_fraction_lower)
 
-        if D != 0:
-            # Equations are independent; check if the unique solution has integer values
-            a_count = (P_x * b_y - P_y * b_x) / D
-            b_count = (a_x * P_y - a_y * P_x) / D
-
-            if a_count.is_integer() and b_count.is_integer() and a_count >= 0 and b_count >= 0:
-                return (int(a_count), int(b_count))
-            else:
-                # Unique solution exists but not integer or non-negative
-                return None
-
-        else:
-            # D == 0; equations are either dependent or inconsistent
-            # Check consistency: ratios of coefficients and constants should be equal
-            consistent = False
-            if (a_x == 0 and a_y == 0 and P_x == 0 and P_y == 0):
-                consistent = True
-            elif a_x == 0 and a_y == 0:
-                if b_x != 0 and b_y != 0:
-                    consistent = (P_x / b_x == P_y / b_y)
-                elif b_x == 0 and b_y == 0:
-                    consistent = (P_x == 0 and P_y == 0)
-                else:
-                    consistent = False
-            elif b_x == 0 and b_y == 0:
-                if a_x != 0 and a_y != 0:
-                    consistent = (P_x / a_x == P_y / a_y)
-                elif a_x == 0 and a_y == 0:
-                    consistent = (P_x == 0 and P_y == 0)
-                else:
-                    consistent = False
-            else:
-                # Both a_x and b_x are non-zero, check the ratios
-                ratio1 = a_x / a_y if a_y != 0 else None
-                ratio2 = b_x / b_y if b_y != 0 else None
-                ratio3 = P_x / P_y if P_y != 0 else None
-
-                # All ratios must be equal
-                if ratio1 is not None and ratio2 is not None and ratio3 is not None:
-                    consistent = (abs(ratio1 - ratio2) < 1e-9) and (abs(ratio1 - ratio3) < 1e-9)
-                else:
-                    # Handle cases where some ratios are undefined (division by zero)
-                    consistent = False
-
-            if not consistent:
-                # Inconsistent system; no solution
-                return None
-
-            # Step 2: Parametrize the Solution
-            # Express a in terms of b using Equation 1: a = (P_x - b_x * b) / a_x
-            # Ensure that a is integer and non-negative
-
-            if a_x != 0:
-                # Find a particular solution (a0, b0)
-                # Find b0 such that (P_x - b_x * b0) is divisible by a_x
-                b0 = None
-                for b_candidate in range(0, P_x // b_x + 1):
-                    if (P_x - b_x * b_candidate) % a_x == 0:
-                        a_candidate = (P_x - b_x * b_candidate) // a_x
-                        if a_candidate >= 0:
-                            b0 = b_candidate
-                            a0 = a_candidate
-                            break
-                if b0 is None:
-                    # No valid solution exists
-                    return None
-
-                # Calculate step sizes
-                common_gcd = gcd(a_x, b_x)
-                delta_a = b_x // common_gcd
-                delta_b = a_x // common_gcd
-
-                # General Solution: a = a0 - k * delta_a, b = b0 + k * delta_b
-                # k must be integer such that a >=0 and b >=0
-
-                # Objective Function: 3*a + b = 3*(a0 - k*delta_a) + (b0 + k*delta_b) = 3*a0 + b0 + k*(-3*delta_a + delta_b)
-
-                coeff_k = -3 * delta_a + delta_b
-
-                # Determine feasible range for k
-                k_min = 0
-                k_max = min(a0 // delta_a if delta_a != 0 else 0,
-                            (P_x - a_x * a0) // b_x if b_x != 0 else 0)
-                # To ensure a >=0 and b >=0:
-                k_max_a = a0 // delta_a if delta_a != 0 else 0
-                k_max_b = ((P_x - a_x * a0) // b_x) if b_x != 0 else 0
-                k_max = a0 // delta_a if delta_a != 0 else 0
-                # To find the maximum k such that a >=0 and b >=0
-                k_max_a = a0 // delta_a if delta_a != 0 else float('inf')
-                k_max_b = ((P_x - a_x * a0) // b_x) if b_x != 0 else float('inf')
-                k_max = min(k_max_a, k_max_b)
-                if k_max == float('inf'):
-                    k_max = 0  # Only k=0 is possible
-                else:
-                    k_max = int(k_max)
-
-                # Now, determine the optimal k based on the sign of coeff_k
-                if coeff_k > 0:
-                    # Objective increases with k; minimize k
-                    optimal_k = 0
-                elif coeff_k < 0:
-                    # Objective decreases with k; maximize k
-                    optimal_k = k_max
-                else:
-                    # Objective is constant; any k is optimal
-                    optimal_k = 0
-
-                # Compute the optimal a and b
-                a_opt = a0 - optimal_k * delta_a
-                b_opt = b0 + optimal_k * delta_b
-
-                # Verify non-negativity
-                if a_opt < 0 or b_opt < 0:
-                    return None
-
-                # Verify the second equation
-                if a_y * a_opt + b_y * b_opt != P_y:
-                    return None
-
-                return (a_opt, b_opt)
-
-            elif b_x != 0:
-                # Similar approach: express b in terms of a using Equation 1
-                a0 = None
-                for a_candidate in range(0, P_x // a_x + 1):
-                    if (P_x - a_x * a_candidate) % b_x == 0:
-                        b_candidate = (P_x - a_x * a_candidate) // b_x
-                        if b_candidate >= 0:
-                            a0 = a_candidate
-                            b0 = b_candidate
-                            break
-                if a0 is None:
-                    return None
-
-                # Calculate step sizes
-                common_gcd = gcd(a_x, b_x)
-                delta_a = b_x // common_gcd
-                delta_b = a_x // common_gcd
-
-                # General Solution: a = a0 + k * delta_a, b = b0 - k * delta_b
-                # k must be integer such that a >=0 and b >=0
-
-                # Objective Function: 3*a + b = 3*(a0 + k*delta_a) + (b0 - k*delta_b) = 3*a0 + b0 + k*(3*delta_a - delta_b)
-
-                coeff_k = 3 * delta_a - delta_b
-
-                # Determine feasible range for k
-                # To ensure b >=0:
-                if delta_b == 0:
-                    if b0 < 0:
-                        return None
-                    k_max = 0
-                else:
-                    k_max = b0 // delta_b
-
-                # Determine k_min based on a >=0
-                if delta_a == 0:
-                    if a0 < 0:
-                        return None
-                    k_min = 0
-                else:
-                    # a = a0 + k * delta_a >=0
-                    # If delta_a >0, no lower bound on k (other than k >=0)
-                    # If delta_a <0, k <= a0 / |delta_a|
-                    if delta_a > 0:
-                        k_min = 0
-                    else:
-                        k_min = max(0, (-a0) // delta_a)
-
-                # Find the optimal k based on the sign of coeff_k
-                if coeff_k > 0:
-                    # Objective increases with k; minimize k
-                    optimal_k = 0
-                elif coeff_k < 0:
-                    # Objective decreases with k; maximize k
-                    optimal_k = k_max
-                else:
-                    # Objective is constant; any k is optimal
-                    optimal_k = 0
-
-                # Compute the optimal a and b
-                a_opt = a0 + optimal_k * delta_a
-                b_opt = b0 - optimal_k * delta_b
-
-                # Verify non-negativity
-                if a_opt < 0 or b_opt < 0:
-                    return None
-
-                # Verify the second equation
-                if a_y * a_opt + b_y * b_opt != P_y:
-                    return None
-
-                return (a_opt, b_opt)
-
-            else:
-                # Both a_x and b_x are zero
-                # Equations reduce to 0 = P_x and 0 = P_y
-                # Already checked consistency earlier
-                # Now, any (a, b) that satisfies a_y * a + b_y * b = P_y
-                # Find the pair that minimizes 3*a + b
-
-                if a_y == 0 and b_y == 0:
-                    if P_y == 0:
-                        # Any (a, b) is a solution; minimal objective is (0,0)
-                        return (0, 0)
-                    else:
-                        # No solution exists
-                        return None
-
-                if a_y != 0:
-                    # Express a in terms of b
-                    a0 = None
-                    for b_candidate in range(0, P_y // b_y + 1):
-                        if (P_y - b_y * b_candidate) % a_y == 0:
-                            a_candidate = (P_y - b_y * b_candidate) // a_y
-                            if a_candidate >= 0:
-                                a0 = a_candidate
-                                b0 = b_candidate
-                                break
-                    if a0 is None:
-                        return None
-
-                    # Calculate step sizes
-                    common_gcd = gcd(a_y, b_y)
-                    delta_a = b_y // common_gcd
-                    delta_b = a_y // common_gcd
-
-                    # General Solution: a = a0 - k * delta_a, b = b0 + k * delta_b
-                    # Objective: 3*a + b = 3*(a0 - k*delta_a) + (b0 + k*delta_b) = 3*a0 + b0 + k*(-3*delta_a + delta_b)
-
-                    coeff_k = -3 * delta_a + delta_b
-
-                    # Determine feasible k
-                    k_max_a = a0 // delta_a if delta_a != 0 else 0
-                    k_max_b = (P_y - a_y * a0) // b_y if b_y != 0 else 0
-                    k_max = min(k_max_a, k_max_b) if delta_a != 0 else 0
-
-                    # Optimal k based on coeff_k
-                    if coeff_k > 0:
-                        optimal_k = 0
-                    elif coeff_k < 0:
-                        optimal_k = k_max
-                    else:
-                        optimal_k = 0
-
-                    # Compute optimal a and b
-                    a_opt = a0 - optimal_k * delta_a
-                    b_opt = b0 + optimal_k * delta_b
-
-                    # Verify non-negativity
-                    if a_opt < 0 or b_opt < 0:
-                        return None
-
-                    # Verify second equation
-                    if a_y * a_opt + b_y * b_opt != P_y:
-                        return None
-
-                    return (a_opt, b_opt)
-
-                elif b_y != 0:
-                    # Express b in terms of a
-                    b0 = None
-                    for a_candidate in range(0, P_y // a_y + 1):
-                        if (P_y - a_y * a_candidate) % b_y == 0:
-                            b_candidate = (P_y - a_y * a_candidate) // b_y
-                            if b_candidate >= 0:
-                                a0 = a_candidate
-                                b0 = b_candidate
-                                break
-                    if b0 is None:
-                        return None
-
-                    # Calculate step sizes
-                    common_gcd = gcd(a_y, b_y)
-                    delta_a = b_y // common_gcd
-                    delta_b = a_y // common_gcd
-
-                    # General Solution: a = a0 + k * delta_a, b = b0 - k * delta_b
-                    # Objective: 3*a + b = 3*(a0 + k*delta_a) + (b0 - k*delta_b) = 3*a0 + b0 + k*(3*delta_a - delta_b)
-
-                    coeff_k = 3 * delta_a - delta_b
-
-                    # Determine feasible k
-                    if delta_b != 0:
-                        k_max = b0 // delta_b
-                    else:
-                        k_max = 0
-
-                    # Optimal k based on coeff_k
-                    if coeff_k > 0:
-                        optimal_k = 0
-                    elif coeff_k < 0:
-                        optimal_k = k_max
-                    else:
-                        optimal_k = 0
-
-                    # Compute optimal a and b
-                    a_opt = a0 + optimal_k * delta_a
-                    b_opt = b0 - optimal_k * delta_b
-
-                    # Verify non-negativity
-                    if a_opt < 0 or b_opt < 0:
-                        return None
-
-                    # Verify second equation
-                    if a_y * a_opt + b_y * b_opt != P_y:
-                        return None
-
-                    return (a_opt, b_opt)
-
-                else:
-                    # Both a_y and b_y are zero
-                    if P_y == 0:
-                        # Any (a, b) is a solution; minimal objective is (0,0)
-                        return (0, 0)
-                    else:
-                        # No solution exists
-                        return None
-
-    def get_a_b_press_count(self) -> tuple[int, int] | None:
-        # b_count_fraction_upper = (self.P_y * self.a_x) - (self.P_x * self.a_y)
-        # b_count_fraction_lower = (self.b_y * self.a_x) - (self.b_x * self.a_y)
-        #
-        # if not is_whole_positive(b_count_fraction_upper, b_count_fraction_lower):
-        #     return self._try_guessing()
-        #
-        # if b_count_fraction_lower == 0:
-        #     return self._try_guessing()
-        #
-        # b_count = b_count_fraction_upper // b_count_fraction_lower
-        #
-        # a_count_fraction_upper = self.P_x - (self.b_x * b_count)
-        # a_count_fraction_lower = self.a_x
-        #
-        # if not is_whole_positive(a_count_fraction_upper, a_count_fraction_lower):
-        #     return self._try_guessing()
-        # if a_count_fraction_lower == 0:
-        #     return self._try_guessing()
-        # a_count = a_count_fraction_upper // a_count_fraction_lower
-
-        # return a_count, b_count
-        return self.find_optimal_counts()
+        return 0 if arem or brem else a * 3 + b
 
     def __str__(self):
         test_injected_txt = f", {self.test_injected_a_count = }, {self.test_injected_b_count = }" if self.test_injected_a_count is not None or self.test_injected_b_count is not None else ""

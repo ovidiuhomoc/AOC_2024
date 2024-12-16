@@ -66,7 +66,7 @@ def in_depth_test():
     print(f"Machines count = {len(machines)}")
 
     for machine in machines:
-        result = machine.get_a_b_press_count()
+        result = machine.get_min_cost()
         if result is not None:
             a_computed_count, b_computed_count = result
             assert a_computed_count == machine.test_injected_a_count and b_computed_count == machine.test_injected_b_count, f"Test failed for {machine} with a_count={machine.test_injected_a_count}, b_count={machine.test_injected_b_count}, a_computed_count={a_computed_count}, b_computed_count={b_computed_count}"
