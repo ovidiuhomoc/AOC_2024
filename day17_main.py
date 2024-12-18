@@ -179,7 +179,7 @@ class Computer:
         self.output.append(result)
         self.advance_to_next_instruction()
 
-
+# brute force seems not to work well in this way.
 def worker(task_queue, result_dict, registerB: int, registerC: int, program: list[int], original_program: tuple, worker_id: int):
     while True:
         try:
@@ -206,6 +206,60 @@ def worker(task_queue, result_dict, registerB: int, registerC: int, program: lis
             print(f"Error in worker: {e = }")
             break
 
+# trying to hardcode the program at bitwise ops level. If this is too computationally expensive, will need to reverse the ops, start from the last one and find the way to the first one. Not recursive, but iterative.
+def worker2_hardcoded_program(task_queue, result_dict, worker_id: int):
+    while True:
+        try:
+            registerA_seed: int | None | str = task_queue.get()
+
+            if registerA_seed == "STOP":
+                break
+
+            if isinstance(registerA_seed, int):
+                hardcoded_original_program = (2, 4, 1, 7, 7, 5, 4, 1, 1, 4, 5, 5, 0, 3, 3, 0)
+
+                for i in range(50):
+                    regA = registerA_seed + i
+                    output_to_check = hardcoded_program(regA)
+                    if output_to_check == hardcoded_original_program:
+                        result_dict['solution'] = registerA_seed + i
+                        break
+            if result_dict['solution']:
+                break
+        except Exception as e:
+            print(f"Error in worker: {e = }")
+            break
+
+
+def hardcoded_program(regA) -> tuple[int, ...]:
+    regB = 0
+    regC = 0
+
+    out = []
+    while regA:
+        # op. 0  -> bst 2 4
+        regB = regA & 7
+
+        # op. 1  -> bxl 1 7
+        regB = regB ^ 7
+
+        # op. 2  -> cdv 7 5
+        regC = regA >> regB
+
+        # op. 3  -> bxc 4 1
+        regB = regB ^ regC
+
+        # op. 4  -> bxl 1 4
+        regB = regB ^ 4
+
+        # op. 5  -> out 5 5
+        out.append(regB & 7)
+
+        # op. 6  -> adv 0 3
+        regA = regA >> 3
+
+    return tuple(out)
+
 
 def main(input, part):
     registers_str = input.split('\n\n')[0].strip()
@@ -230,7 +284,7 @@ def main(input, part):
         original_program: tuple[int, ...] = tuple(i for i in program)
         program_output: tuple[int, ...] = tuple()
 
-        registerA_seed = 222219272
+        registerA_seed = 351545604
 
         manager = multiprocessing.Manager()
         queue = manager.Queue()
@@ -239,13 +293,13 @@ def main(input, part):
         shared_dict['solution'] = None
 
         workers_number = 20
-        workers = [multiprocessing.Process(target=worker, args=[queue, shared_dict, registers[1], registers[2], program, original_program, i]) for i in range(workers_number)]
+        workers = [multiprocessing.Process(target=worker2_hardcoded_program, args=[queue, shared_dict, i]) for i in range(workers_number)]
         for w in workers:
             w.start()
 
         while not shared_dict['solution']:
             queue.put(registerA_seed)
-            registerA_seed += 1
+            registerA_seed += 50
 
         print(f"============================= {shared_dict['solution'] = } =============================")
 
